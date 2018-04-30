@@ -109,6 +109,9 @@ public class Drop extends ApplicationAdapter {
 		batch.dispose();
 	}
 
+	/**
+	 * comment added here to show on github
+	 */
 	private void spawnRaindrop() {
 		Rectangle raindrop = new Rectangle();
 		raindrop.x = MathUtils.random(0, 800-64);
