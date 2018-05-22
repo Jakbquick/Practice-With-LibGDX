@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -25,6 +26,9 @@ public class GameScreen extends ScreenAdapter {
     private Camera camera;
     private SpriteBatch batch;
     private Flappee flappee = new Flappee();
+    //private Flower flower = new Flower();
+    private Array<Flower> flowers = new Array<Flower>();
+    private static final float GAP_BETWEEN_FLOWERS = 200F;
 
     public void resize(int width, int height){
         viewport.update(width,height);
@@ -46,10 +50,9 @@ public class GameScreen extends ScreenAdapter {
         batch.setTransformMatrix(camera.view);
         batch.begin();
         batch.end();
-        shapeRenderer.setProjectionMatrix(camera.projection);
-        shapeRenderer.setTransformMatrix(camera.view);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        flappee.drawDebug(shapeRenderer);
+        drawDebug();
+        //flower.drawDebug(shapeRenderer);
+
         shapeRenderer.end();
         update(delta);
     }
@@ -62,6 +65,15 @@ public class GameScreen extends ScreenAdapter {
         flappee.update();
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) flappee.flyUp();
         blockFlappeeLeavingTheWorld();
+        updateFlowers(delta);
+    }
+
+    private void updateFlowers(float delta) {
+        for (Flower flower : flowers) {
+            flower.update(delta);
+        }
+        checkIfNewFlowerIsNeeded();
+        removeFlowersIfPassed();
     }
 
     private void clearScreen() {
@@ -71,5 +83,41 @@ public class GameScreen extends ScreenAdapter {
 
     }
 
+    private void createNewFlower() {
+        Flower newFlower = new Flower();
+        newFlower.setPosition(WORLD_WIDTH + Flower.WIDTH);
+        flowers.add(newFlower);
+    }
 
+    private void checkIfNewFlowerIsNeeded() {
+        if(flowers.size == 0) {
+            createNewFlower();
+        }
+        else {
+            Flower flower = flowers.peek();
+            if (flower.getX() < WORLD_WIDTH - GAP_BETWEEN_FLOWERS){
+                createNewFlower();
+            }
+        }
+    }
+
+    private void removeFlowersIfPassed() {
+        if(flowers.size > 0) {
+            Flower firstFlower = flowers.first();
+            if (firstFlower.getX() < -Flower.WIDTH) {
+                flowers.removeValue(firstFlower,true);
+            }
+        }
+    }
+
+    private void drawDebug() {
+        shapeRenderer.setProjectionMatrix(camera.projection);
+        shapeRenderer.setTransformMatrix(camera.view);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        for (Flower flower : flowers) {
+            flower.drawDebug(shapeRenderer);
+        }
+        flappee.drawDebug(shapeRenderer);
+        shapeRenderer.end();
+    }
 }
